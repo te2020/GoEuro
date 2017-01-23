@@ -1,0 +1,17 @@
+﻿
+@{
+    ViewBag.Title = "TesteBeginForm";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>TesteBeginForm</h2>
+
+<div class="row">
+    <h2>Einstellungen</h2>
+    <form name="SearchForm" method="post" id="SearchForm" action="/Home/POST_TesteBeginForm">
+
+
+        <label for="startort">Startort:</label>
+        <input type="text"  class="form-control" name="I_startort" id="startort" placeholder="Suche nach Startort ...">
+    </form>
+</div>
