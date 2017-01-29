@@ -115,10 +115,26 @@
     </div>
 </div>
 
+<div class="modal fade" id="pleaseWaitDialog" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog">
+    <div class="modal hide">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1>Processing...</h1>
+            </div>
+            <div class="modal-body">
+                <h3>Auf Antwort vom Server wird gewartet.</h3>
+                <div class="progress progress-striped active">
+                    <div class="bar" style="width: 100%;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 @section scripts{
     <script>
         window.modalView = new Array();
-
 
         window.onerror = function (messageOrEvent, source, lineno, colno, error) {
             console.log(messageOrEvent);
@@ -127,9 +143,53 @@
             console.log(colno);
             console.log(error);
 
+            Enable_GoButton();
+            HideModal();
         };
 
+        function Disable_GoButton() {
+            $("#pleaseWaitDialog").modal('show');
+            $("#startSearch").prop("disabled", true);
+        }
+ 
+        function Enable_GoButton() {
+            $("#startSearch").prop("disabled", false);
+        }
+
+        function HideModal() {
+            $("#pleaseWaitDialog").modal('hide');
+        }
+
+        //Enable_GoButton();
+        //HideModal();
+
         $(function () {
+
+
+            //lese letzte Werte in den LocalStorage
+
+            //START
+            if (localStorage.getItem("startort")) {
+                $("#startort").val(localStorage.getItem("startort"));
+            }
+            if (localStorage.getItem("startortjourneyid")) {
+                $("#startort").data("journeyid", localStorage.getItem("startortjourneyid"));
+            }
+            if (localStorage.getItem("startzeitpunkt")) {
+                $("#startzeitpunkt").val(localStorage.getItem("startzeitpunkt"));
+            }
+
+            //ZIEL
+            if (localStorage.getItem("zielort")) {
+                $("#zielort").val(localStorage.getItem("zielort"));
+            }
+            if (localStorage.getItem("zielortjourneyid")) {
+                $("#zielort").data("journeyid", localStorage.getItem("zielortjourneyid"));
+            }
+            if (localStorage.getItem("endzeitpunkt")) {
+                $("#endzeitpunkt").val(localStorage.getItem("endzeitpunkt"));
+            }
+
 
             try {
 
@@ -208,13 +268,21 @@
                 /////////////////////
 
                 $('#startSearch').click(function (e) {
+                    Disable_GoButton();
+
+                    //schreibe letzte Werte in den LocalStorage
+                    localStorage.setItem("startort", $("#startort").val());
+                    localStorage.setItem("startortjourneyid", $("#startort").data("journeyid"));
+                    localStorage.setItem("startzeitpunkt", $("#startzeitpunkt").val());
+
+                    localStorage.setItem("zielortjourneyid", $("#zielort").data("journeyid"));
+                    localStorage.setItem("zielort", $("#zielort").val());
+                    localStorage.setItem("endzeitpunkt", $("#endzeitpunkt").val());
+
                     e.preventDefault();
 
                     var table = $('#datatables_grid').dataTable().api();
                     var box = $('#logger');
-
-                    //$('#startort').val()
-                    //$('#zielort').val()
 
                     //Nach der Suchanfrage setze die Titleleiste des Browser
                     document.title = $('#startort').val() + " -> " + $('#zielort').val();
@@ -241,7 +309,10 @@
 
                             //die ersten 25% erreicht;
                             macheProgressbar(25);
-                            box.text(box.text() + "# Die ersten 25% erreicht" + "\n");
+                            box.text("# Die ersten 25% erreicht" + "\n" + box.text());
+
+                            HideModal();
+
 
                             //global zuweisen.
                             window.data = JSON.parse(searchIds);
@@ -260,7 +331,7 @@
                                     goEuroRestApiCounter++;
                                     macheProgressbar(25 + (goEuroRestApiCounter * 75 / window.data.Search_Ids.length));
 
-                                    box.text(box.text() + "# 1. Antwort(von " + window.data.Search_Ids.length + ") von der Ursprungsseite empfangen =" + window.data.Search_Ids[0].searchId + "\n");
+                                    box.text("# 1. Antwort(von " + window.data.Search_Ids.length + ") von der Ursprungsseite empfangen =" + window.data.Search_Ids[0].searchId + "\n" + box.text());
 
                                     firstBlood.Id = 0; //damit ich den Datensatz später eindeutig zuordnen kann
                                     window.extraPostsToGoEuro.push(firstBlood);
@@ -270,8 +341,10 @@
                                 },
                                 'error': function (XMLHttpRequest, textStatus, errorThrown) {
                                     console.error(errorThrown);
-                                    box.text(box.text() + "[Fehler] - \"FirstBlood\"-Anfrage gescheitert !!!" + "\n");
+                                    box.text("[Fehler] - \"FirstBlood\"-Anfrage gescheitert !!!" + "\n" + box.text());
 
+                                    Enable_GoButton();
+                                    HideModal();
                                 }
                             });
 
@@ -287,7 +360,7 @@
                                         'success': function (unstopable) {
 
 
-                                            box.text(box.text() + "# " + num + ". Antwort(von " + window.data.Search_Ids.length + ") von der Ursprungsseite empfangen =" + window.data.Search_Ids[num].searchId + "\n");
+                                            box.text("# " + num + ". Antwort(von " + window.data.Search_Ids.length + ") von der Ursprungsseite empfangen =" + window.data.Search_Ids[num].searchId + "\n" + box.text());
 
 
                                             //75%  = 100%
@@ -297,7 +370,7 @@
                                             var tempProzentwert = 25 + (goEuroRestApiCounter * 75 / window.data.Search_Ids.length);
                                             macheProgressbar(tempProzentwert);
 
-                                            box.text(box.text() + "# Loading " + tempProzentwert + "%." + "\n");
+                                            box.text("# Loading " + tempProzentwert + "%." + "\n" + box.text());
                                             unstopable.Id = num; //damit ich den Datensatz später eindeutig zuordnen kann
 
                                             window.extraPostsToGoEuro.push(unstopable);
@@ -307,19 +380,22 @@
                                         },
                                         'error': function (XMLHttpRequest, textStatus, errorThrown) {
                                             console.error(errorThrown);
-                                            box.text(box.text() + "[Fehler] - \"Unstopable\"-  Anfrage(n) gescheitert. " + "\n");
+                                            box.text("[Fehler] - \"Unstopable\"-  Anfrage(n) gescheitert. " + "\n" + box.text());
+
+                                            Enable_GoButton();
+                                            HideModal();
                                         }
                                     });
 
 
                                 } else {
-                                    box.text(box.text() + "# Rekursive Funktion fertig. " + "\n");
+                                    box.text("# Rekursive Funktion fertig. " + "\n" + box.text());
 
                                     /////////////////////
                                     //// DATATABLES /////
                                     /////////////////////
 
-                                    box.text(box.text() + "# Beginne die Daten der Datatable zu formatieren. " + "\n");
+                                    box.text("# Beginne die Daten der Datatable zu formatieren. " + "\n" + box.text());
 
                                     var dataSet = [];
 
@@ -553,7 +629,9 @@
                                     table.rows.add(dataSet);
                                     table.draw();
 
-                                    box.text(box.text() + "# Erstelle Tabelle. " + "\n");
+                                    box.text("# Erstelle Tabelle. " + "\n" + box.text());
+                                    $("#startSearch").prop("disabled", false);
+
 
                                 }
 
@@ -566,7 +644,10 @@
                         }
                         , error: function (XMLHttpRequest, textStatus, errorThrown) {
                             console.error(errorThrown);
-                            box.text(box.text() + "[Fehler] - Anfrage an meinen Server gescheitert. " + "\n");
+                            box.text("[Fehler] - Anfrage an meinen Server gescheitert. " + "\n" + box.text());
+
+                            Enable_GoButton();
+                            HideModal();
                         }
                     });
                     //Click-Ende
