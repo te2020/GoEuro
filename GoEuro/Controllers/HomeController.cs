@@ -16,17 +16,19 @@ namespace GoEuro.Controllers
 {
     public class HomeController : Controller
     {
-        public ActionResult TesteBeginForm()
+        #region ByDate
+
+        public ActionResult GetPlacesOverTheYear()
         {
             return View();
         }
 
-        public ActionResult POST_TesteBeginForm(FormCollection collection)
-        {
-            string valueFromNameTextBox = collection["I_startort"];
+        //public ActionResult POST_GetPlacesOverTheYear(FormCollection collection)
+        //{
+        //    string valueFromNameTextBox = collection["I_startort"];
 
-            return View();
-        }
+        //    return View();
+        //}
 
         public ActionResult Index()
         {
@@ -34,9 +36,9 @@ namespace GoEuro.Controllers
             return View();
         }
 
-        //[HttpPost]POST_GoEuroApiCall
+        //[HttpPost]POST_GetPlacesOverTheYear
         [AcceptVerbs(HttpVerbs.Post)]
-        public async Task<string> POST_GoEuroApiCall(FormCollection collection)
+        public async Task<string> POST_GetPlacesOverTheYear(FormCollection collection)
         {
             string datumsFormat = "dd.MM.yyyy";
 
@@ -84,6 +86,43 @@ namespace GoEuro.Controllers
 
             return result;
         }
+
+        #endregion
+
+        #region GetPlacesByDate
+
+        public ActionResult GetPlacesByDate()
+        {
+            return View();
+        }
+
+        [AcceptVerbs(HttpVerbs.Post)]
+        public async Task<string> POST_GetPlacesByDate(FormCollection collection)
+        {
+            string datumsFormat = "dd.MM.yyyy";
+
+            //Init
+            Thread.CurrentThread.CurrentCulture = new CultureInfo("de-DE");
+            System.Net.ServicePointManager.DefaultConnectionLimit = 500;
+
+            string departurePosition = collection["I_StartPrice"];
+            string arrivalPosition = collection["I_EndPrice"];
+
+            DateTime fromDate = DateTime.Now;
+
+            if (!String.IsNullOrEmpty(collection["I_startzeitpunkt"]))
+            {
+                fromDate = DateTime.ParseExact(collection["I_startzeitpunkt"], datumsFormat, CultureInfo.CurrentCulture);
+            }
+             
+            //var result = "";
+
+            //var result = await GOEuroApi_Requests.BaueFrontEndObject(departurePosition: departurePosition, arrivalPosition: arrivalPosition,/* departureDate: departureDate,*/ fromDate: fromDate, toDate: toDate, day: days);
+
+            return null;
+        }
+
+        #endregion
 
     }
 }
